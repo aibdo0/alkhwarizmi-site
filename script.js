@@ -1,5 +1,4 @@
 const DEFAULT_API = "https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIdguqzLIWaz7GESIG3vZqh7/exec";
-const DEFAULT_KEY = "1552006";
 
 const statuses = [
   "تم استلام المستندات",
@@ -38,17 +37,10 @@ document.addEventListener("DOMContentLoaded", function () {
     apiUrl.value = DEFAULT_API;
   }
 
-  const adminKey = document.getElementById("adminKey");
-  if (adminKey) {
-    adminKey.value = DEFAULT_KEY;
-  }
-
   const saveConfig = document.getElementById("saveConfig");
 
   if (saveConfig) {
     saveConfig.onclick = function () {
-      localStorage.setItem("kh_api", DEFAULT_API);
-      localStorage.setItem("kh_key", DEFAULT_KEY);
       alert("تم حفظ إعدادات نظام المتابعة");
     };
   }
@@ -274,6 +266,12 @@ async function saveCar() {
   const chassisElement =
     document.getElementById("chassis");
 
+  const adminKeyElement =
+    document.getElementById("adminKey");
+
+  const adminKeyValue =
+    adminKeyElement ? adminKeyElement.value.trim() : "";
+
   const code =
     codeElement ? codeElement.value.trim() : "";
 
@@ -311,7 +309,7 @@ async function saveCar() {
     const data = await apiGet({
 
       action: "save",
-      key: DEFAULT_KEY,
+      key: adminKeyValue,
       code: code,
       clientName: clientName,
       phone: phone,
@@ -359,4 +357,3 @@ function escapeHtml(value) {
     }
   );
 }
-
