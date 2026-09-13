@@ -8,91 +8,124 @@ const statuses = [
   "وصلت ميناء سفاجا",
   "جاري التخليص الجمركي",
   "تم إنهاء الفحص",
-  "تم تسجيل 46",
-  "تم إنهاء المعاينة",
-  "تم إنهاء التتمين",
-  "تم الاعتماد",
-  "تم دفع الفاتورة",
-  "تم تسليم الإخطار",
   "تم الإفراج عن السيارة",
   "خرجت من الميناء",
   "تم التسليم"
 ];
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
-  const y = document.getElementById("year");
-  if (y) y.textContent = new Date().getFullYear();
+  const year = document.getElementById("year");
+  if (year) {
+    year.textContent = new Date().getFullYear();
+  }
 
-  const sel = document.getElementById("carStatus");
+  const statusSelect = document.getElementById("carStatus");
 
-  if (sel) {
-    statuses.forEach((s, i) => {
-      const o = document.createElement("option");
-      o.value = i;
-      o.textContent = (i + 1) + ". " + s;
-      sel.appendChild(o);
+  if (statusSelect) {
+    statusSelect.innerHTML = "";
+
+    statuses.forEach(function (status, index) {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = (index + 1) + ". " + status;
+      statusSelect.appendChild(option);
     });
   }
 
-  const cfg = document.getElementById("apiUrl");
-  if (cfg) cfg.value = DEFAULT_API;
+  const apiUrl = document.getElementById("apiUrl");
+  if (apiUrl) {
+    apiUrl.value = DEFAULT_API;
+  }
 
-  const key = document.getElementById("adminKey");
-  if (key) key.value = DEFAULT_KEY;
+  const adminKey = document.getElementById("adminKey");
+  if (adminKey) {
+    adminKey.value = DEFAULT_KEY;
+  }
 
-  const save = document.getElementById("saveConfig");
+  const saveConfig = document.getElementById("saveConfig");
 
-  if (save) {
-    save.onclick = () => {
+  if (saveConfig) {
+    saveConfig.onclick = function () {
       localStorage.setItem("kh_api", DEFAULT_API);
       localStorage.setItem("kh_key", DEFAULT_KEY);
       alert("تم حفظ إعدادات نظام المتابعة");
     };
   }
 
-  const sf = document.getElementById("trackForm");
+  const trackForm = document.getElementById("trackForm");
 
-  if (sf) {
-    sf.addEventListener("submit", async e => {
-      e.preventDefault();
-      showTrack(
-        document.getElementById("trackCode").value.trim()
-      );
+  if (trackForm) {
+    trackForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const input = document.getElementById("trackCode");
+
+      if (input) {
+        showTrack(input.value.trim());
+      }
     });
   }
 
-  const sb = document.getElementById("saveCar");
+  const saveCarButton = document.getElementById("saveCar");
 
-  if (sb) {
-    sb.onclick = saveCar;
+  if (saveCarButton) {
+    saveCarButton.onclick = saveCar;
   }
 });
 
-async function apiGet(params) {
 
-  const url = DEFAULT_API;
+function apiGet(params) {
 
-  if (!url) {
-    throw new Error("رابط نظام المتابعة غير موجود");
-  }
+  return new Promise(function (resolve, reject) {
 
-  const u = new URL(url);
+    const callbackName =
+      "khCallback_" +
+      Date.now() +
+      "_" +
+      Math.floor(Math.random() * 100000);
 
-  Object.entries(params).forEach(([k, v]) => {
-    u.searchParams.set(k, v);
-  });
+    const script = document.createElement("script");
 
-  const r = await fetch(
-    u.toString(),
-    {
-      method: "GET",
-      cache: "no-store"
+    const url = new URL(DEFAULT_API);
+
+    Object.entries(params).forEach(function ([key, value]) {
+      url.searchParams.set(key, value);
+    });
+
+    url.searchParams.set("callback", callbackName);
+
+    const timer = setTimeout(function () {
+      cleanup();
+      reject(new Error("انتهت مهلة الاتصال"));
+    }, 15000);
+
+    window[callbackName] = function (data) {
+      clearTimeout(timer);
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = function () {
+      clearTimeout(timer);
+      cleanup();
+      reject(new Error("تعذر الاتصال بـ Google Apps Script"));
+    };
+
+    function cleanup() {
+      delete window[callbackName];
+
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
     }
-  );
 
-  return await r.json();
+    script.src = url.toString();
+
+    document.body.appendChild(script);
+  });
 }
+
 
 function render(data, target) {
 
@@ -100,7 +133,7 @@ function render(data, target) {
 
     target.innerHTML =
       '<div class="notice" style="margin-top:18px">' +
-      'لم يتم العثور على الملف. تأكد من رقم الشحنة.' +
+      'لم يتم العثور على الشحنة. تأكد من رقم الشحنة.' +
       '</div>';
 
     return;
@@ -108,9 +141,224 @@ function render(data, target) {
 
   const current = Number(data.statusIndex || 0);
 
-  let h =
-    `<div class="card status">
-      <h3>${escapeHtml(data.code || "")}</h3>
+  let html = `
+    <div class="card status">
+
+      <h3>
+        ${escapeHtml(data.code || "")}
+      </h3>
+
+      <p>
+        <b>العميل:</b>
+        ${escapeHtml(data.clientName || "—")}
+        <br>
+
+        <b>السيارة:</b>
+        ${escapeHtml(data.carInfo || "—")}
+      </p>
+  `;
+
+  statuses.forEach(function (status, index) {
+
+    html += `
+      <div class="step ${index <= current ? "done" : ""}">
+
+        <span class="dot"></span>
+
+        <div>
+
+          <strong>
+            ${index + 1}. ${status}
+          </strong>
+
+          ${
+            index === current
+              ? '<div class="small">آخر مرحلة مسجلة</div>'
+              : ""
+          }
+
+        </div>
+
+      </div>
+    `;
+  });
+
+  if (data.note) {
+
+    html += `
+      <div class="notice" style="margin-top:15px">
+        ${escapeHtml(data.note)}
+      </div>
+    `;
+  }
+
+  if (data.updatedAt) {
+
+    html += `
+      <div class="small" style="margin-top:15px">
+        آخر تحديث: ${escapeHtml(data.updatedAt)}
+      </div>
+    `;
+  }
+
+  html += "</div>";
+
+  target.innerHTML = html;
+}
+
+
+async function showTrack(code) {
+
+  const target =
+    document.getElementById("trackResult");
+
+  if (!target) return;
+
+  if (!code) {
+
+    target.innerHTML =
+      '<div class="notice">اكتب رقم الشحنة أولًا.</div>';
+
+    return;
+  }
+
+  target.innerHTML =
+    '<div class="notice">جاري البحث...</div>';
+
+  try {
+
+    const data = await apiGet({
+      action: "get",
+      code: code
+    });
+
+    render(data, target);
+
+  } catch (error) {
+
+    console.error(error);
+
+    target.innerHTML =
+      '<div class="notice">' +
+      'تعذر الاتصال بنظام المتابعة. حاول مرة أخرى.' +
+      '</div>';
+  }
+}
+
+
+async function saveCar() {
+
+  const message =
+    document.getElementById("adminMsg");
+
+  if (!message) return;
+
+  const codeElement =
+    document.getElementById("carCode");
+
+  const clientElement =
+    document.getElementById("clientName");
+
+  const carElement =
+    document.getElementById("carInfo");
+
+  const statusElement =
+    document.getElementById("carStatus");
+
+  const noteElement =
+    document.getElementById("carNote");
+
+  const phoneElement =
+    document.getElementById("clientPhone");
+
+  const chassisElement =
+    document.getElementById("chassis");
+
+  const code =
+    codeElement ? codeElement.value.trim() : "";
+
+  const clientName =
+    clientElement ? clientElement.value.trim() : "";
+
+  const carInfo =
+    carElement ? carElement.value.trim() : "";
+
+  const statusIndex =
+    statusElement ? statusElement.value : "0";
+
+  const note =
+    noteElement ? noteElement.value.trim() : "";
+
+  const phone =
+    phoneElement ? phoneElement.value.trim() : "";
+
+  const chassis =
+    chassisElement ? chassisElement.value.trim() : "";
+
+  if (!code) {
+
+    message.innerHTML =
+      '<div class="notice">اكتب رقم الشحنة.</div>';
+
+    return;
+  }
+
+  message.innerHTML =
+    '<div class="notice">جاري الحفظ...</div>';
+
+  try {
+
+    const data = await apiGet({
+
+      action: "save",
+      key: DEFAULT_KEY,
+      code: code,
+      clientName: clientName,
+      phone: phone,
+      carInfo: carInfo,
+      chassis: chassis,
+      statusIndex: statusIndex,
+      note: note
+
+    });
+
+    message.innerHTML =
+      '<div class="notice">' +
+      escapeHtml(
+        data.message || "تم الحفظ بنجاح"
+      ) +
+      '</div>';
+
+  } catch (error) {
+
+    console.error(error);
+
+    message.innerHTML =
+      '<div class="notice">' +
+      'تعذر حفظ الشحنة. تأكد من إعدادات النظام.' +
+      '</div>';
+  }
+}
+
+
+function escapeHtml(value) {
+
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    function (character) {
+
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+
+      }[character];
+
+    }
+  );
+}      <h3>${escapeHtml(data.code || "")}</h3>
       <p>
         <b>العميل:</b> ${escapeHtml(data.clientName || "—")}<br>
         <b>السيارة:</b> ${escapeHtml(data.carInfo || "—")}
