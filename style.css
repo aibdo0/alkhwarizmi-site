@@ -19,6 +19,8 @@ html{ scroll-behavior:smooth; }
 body{
   font-family:"Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
   direction: rtl;
+  background: var(--bg);
+  margin: 0;
   color: var(--text);
   line-height: 1.9;
 }
