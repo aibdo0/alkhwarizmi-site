@@ -670,3 +670,30 @@ footer a{ color:#fff; text-decoration: underline; text-underline-offset: 6px; }
   border:0;
   font-weight: 900;
     }
+/* ===== Slider Fix (paste at END of style.css) ===== */
+.hero-slider .slides{
+  display:flex;
+  height:360px;
+  overflow:hidden;
+  transition: transform .4s ease;
+  will-change: transform;
+}
+
+.hero-slider .slide{
+  position:relative !important;
+  inset:auto !important;
+  opacity:1 !important;
+  flex:0 0 100%;
+  min-width:100%;
+  height:100%;
+}
+
+.hero-slider .slide img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+@media (max-width: 980px){
+  .hero-slider .slides{ height:260px; }
+}
