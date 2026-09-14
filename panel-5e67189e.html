@@ -1,11 +1,410 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="شركة الخوارزمي للتخليص الجمركي للسيارات - سفاجا"><title>لوحة التحكم | الخوارزمي للتخليص الجمركي</title><link rel="stylesheet" href="style.css"></head><body>
-<div class="top"><div class="container"><span>📍 أمام بوابة ميناء سفاجا</span><span>📞 01003299254</span></div></div>
-<nav class="nav"><div class="container navin"><a class="brand" href="index.html"><img src="logo.png" alt="شعار الخوارزمي"><span>الخوارزمي</span></a><div class="links"><a href="index.html">الرئيسية</a><a href="initiative.html">مبادرة المصريين بالخارج</a><a href="first-owner.html">مالك أول</a><a href="triptyque.html">تربتيك</a><a href="gulf-cars.html">من الخليج</a><a href="acid.html">ACID</a><a href="safaga.html">سفاجا</a><a href="track.html">تتبع السيارة</a></div></div></nav>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
 
-<section><div class="container admin"><div class="title"><h2>لوحة التحكم في التتبع</h2><p>إضافة ملف وتغيير المرحلة وإظهار ملاحظات للعميل.</p></div>
-<div class="notice">⚠️ هذه الواجهة تحتاج ربطها بقاعدة بيانات/Google Sheet حتى تظهر التعديلات للعملاء من أي جهاز. الكود المرفق اسمه <b>Code.gs</b> ويجهز لك الربط المجاني عبر Google Apps Script.</div>
-<div class="card" style="margin-top:20px"><h3>بيانات الاتصال</h3><label>رابط Google Apps Script Web App</label><input id="apiUrl" placeholder="ضع الرابط هنا"><label>مفتاح الإدارة</label><input id="adminKey" type="password" placeholder="ضع المفتاح الذي اخترته في Code.gs"><button class="btn primary" id="saveConfig">حفظ الإعدادات</button></div>
-<div class="card" style="margin-top:20px"><h3>إضافة / تعديل ملف</h3><input id="carCode" placeholder="رقم الملف KH-1001"><input id="clientName" placeholder="اسم العميل"><input id="carInfo" placeholder="بيانات السيارة"><select id="carStatus"></select><textarea id="carNote" rows="3" placeholder="ملاحظة للعميل"></textarea><button class="btn primary" id="saveCar">حفظ التحديث</button><div id="adminMsg"></div></div>
-</div></section>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-<footer><div class="container footergrid"><div><h3>شركة الخوارزمي للتخليص الجمركي</h3><p>تخليص ومتابعة إجراءات السيارات والشحنات بميناء سفاجا.</p><p>📍 أمام بوابة ميناء سفاجا<br>📞 01003299254</p></div><div><h3>روابط</h3><p><a href="https://wa.me/201003299254">واتساب</a></p><p><a href="https://www.facebook.com/AlKhwarizmi8">فيسبوك</a></p></div><div><h3>التتبع</h3><p><a href="track.html">تتبع سيارتك</a></p></div></div><div class="container small">© <span id="year"></span> الخوارزمي للتخليص الجمركي</div></footer><script src="script.js"></script></body></html>
+  <title>لوحة إدارة الشحنات | الخوارزمي</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      background: #07111f;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .admin-wrapper {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .admin-header img {
+      width: 100px;
+      max-width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .admin-header h1 {
+      margin: 0 0 8px;
+      color: #d8ad55;
+    }
+
+    .admin-header p {
+      color: #aaa;
+      margin: 0;
+    }
+
+    .admin-card {
+      background: #101d2d;
+      border: 1px solid rgba(216,173,85,.25);
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.25);
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: bold;
+      color: #d8ad55;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid #34465c;
+      background: #081522;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #d8ad55;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .save-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      border: 0;
+      border-radius: 12px;
+      background: #d8ad55;
+      color: #07111f;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .save-btn:hover {
+      opacity: .9;
+    }
+
+    .notice {
+      margin-top: 18px;
+      padding: 13px;
+      border-radius: 10px;
+      background: rgba(216,173,85,.10);
+      border: 1px solid rgba(216,173,85,.25);
+      color: #eee;
+      text-align: center;
+    }
+
+    .security-note {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #d8ad55;
+      text-decoration: none;
+    }
+
+    @media (max-width: 700px) {
+
+      .admin-wrapper {
+        margin: 15px auto;
+        padding: 12px;
+      }
+
+      .admin-card {
+        padding: 18px;
+      }
+
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="admin-wrapper">
+
+    <header class="admin-header">
+
+      <img src="logo.png"
+           alt="شركة الخوارزمي للتخليص الجمركي">
+
+      <h1>لوحة إدارة الشحنات</h1>
+
+      <p>
+        شركة الخوارزمي للتخليص الجمركي
+      </p>
+
+    </header>
+
+
+    <section class="admin-card">
+
+      <div class="admin-grid">
+
+        <!-- مفتاح الإدارة -->
+        <div class="field full">
+
+          <label for="adminKey">
+            مفتاح الإدارة
+          </label>
+
+          <input
+            type="password"
+            id="adminKey"
+            placeholder="أدخل مفتاح الإدارة"
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <!-- رقم الشحنة -->
+        <div class="field">
+
+          <label for="carCode">
+            رقم الشحنة *
+          </label>
+
+          <input
+            type="text"
+            id="carCode"
+            placeholder="مثال: KH-1001"
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <!-- اسم العميل -->
+        <div class="field">
+
+          <label for="clientName">
+            اسم العميل
+          </label>
+
+          <input
+            type="text"
+            id="clientName"
+            placeholder="اسم العميل"
+          >
+
+        </div>
+
+
+        <!-- الهاتف -->
+        <div class="field">
+
+          <label for="clientPhone">
+            رقم الهاتف
+          </label>
+
+          <input
+            type="tel"
+            id="clientPhone"
+            placeholder="01xxxxxxxxx"
+          >
+
+        </div>
+
+
+        <!-- السيارة -->
+        <div class="field">
+
+          <label for="carInfo">
+            السيارة
+          </label>
+
+          <input
+            type="text"
+            id="carInfo"
+            placeholder="مثال: تويوتا كامري 2026"
+          >
+
+        </div>
+
+
+        <!-- رقم الشاسيه -->
+        <div class="field full">
+
+          <label for="chassis">
+            رقم الشاسيه
+          </label>
+
+          <input
+            type="text"
+            id="chassis"
+            placeholder="رقم الشاسيه"
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <!-- الحالة -->
+        <div class="field full">
+
+          <label for="carStatus">
+            حالة الشحنة
+          </label>
+
+          <select id="carStatus">
+
+            <option value="0">
+              1. تم استلام المستندات
+            </option>
+
+            <option value="1">
+              2. جاري مراجعة المستندات
+            </option>
+
+            <option value="2">
+              3. تم التسجيل المسبق للشحنة (ACID)
+            </option>
+
+            <option value="3">
+              4. تم إنهاء الإجراءات
+            </option>
+
+            <option value="4">
+              5. تم شحن السيارة
+            </option>
+
+            <option value="5">
+              6. وصلت ميناء سفاجا
+            </option>
+
+            <option value="6">
+              7. جاري التخليص الجمركي
+            </option>
+
+            <option value="7">
+              8. تم إنهاء الفحص
+            </option>
+
+            <option value="8">
+              9. تم الإفراج عن السيارة
+            </option>
+
+            <option value="9">
+              10. خرجت من الميناء
+            </option>
+
+            <option value="10">
+              11. تم التسليم
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- ملاحظات -->
+        <div class="field full">
+
+          <label for="carNote">
+            ملاحظات للعميل
+          </label>
+
+          <textarea
+            id="carNote"
+            placeholder="اكتب أي ملاحظة تريد ظهورها للعميل..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <!-- زر الحفظ -->
+      <button
+        type="button"
+        id="saveCar"
+        class="save-btn">
+
+        حفظ / تحديث الشحنة
+
+      </button>
+
+
+      <!-- رسالة النظام -->
+      <div id="adminMsg"></div>
+
+
+      <div class="security-note">
+
+        🔐 استخدم لوحة الإدارة فقط لإضافة أو تحديث بيانات الشحنات.
+        <br>
+        بعد الحفظ يستطيع العميل متابعة شحنته من صفحة
+        «تتبع شحنتك» باستخدام رقم الشحنة.
+
+      </div>
+
+    </section>
+
+
+    <div style="text-align:center">
+
+      <a
+        href="track.html"
+        class="back-link">
+
+        ← الانتقال إلى صفحة تتبع الشحنات
+
+      </a>
+
+    </div>
+
+  </main>
+
+
+  <!-- JavaScript -->
+  <script src="script.js"></script>
+
+</body>
+</html>
