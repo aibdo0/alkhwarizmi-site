@@ -706,3 +706,62 @@ footer a{ color:#fff; text-decoration: underline; text-underline-offset: 6px; }
   background-position: center;
   background-repeat: no-repeat;
 }
+/* ===== Hero Slider (works with your HTML) ===== */
+(function () {
+  const slider = document.querySelector(".hero-slider");
+  if (!slider) return;
+
+  const track = slider.querySelector(".slides");
+  const slides = Array.from(slider.querySelectorAll(".slide"));
+  const prevBtn = document.getElementById("prevSlide");
+  const nextBtn = document.getElementById("nextSlide");
+  const dotsWrap = document.getElementById("sliderDots");
+
+  if (!track || slides.length === 0) return;
+
+  // ensure dots count = slides count
+  let dots = dotsWrap ? Array.from(dotsWrap.querySelectorAll(".dot")) : [];
+  if (dotsWrap && dots.length !== slides.length) {
+    dotsWrap.innerHTML = "";
+    dots = slides.map((_, i) => {
+      const b = document.createElement("button");
+      b.className = "dot";
+      b.type = "button";
+      b.setAttribute("aria-label", `الصورة ${i + 1}`);
+      dotsWrap.appendChild(b);
+      return b;
+    });
+  }
+
+  let index = slides.findIndex(s => s.classList.contains("active"));
+  if (index < 0) index = 0;
+
+  function goTo(i) {
+    index = (i + slides.length) % slides.length;
+
+    // move slider
+    track.style.transform = `translateX(-${index * 100}%)`;
+
+    // update active classes (for dots styling)
+    slides.forEach((s, idx) => s.classList.toggle("active", idx === index));
+    dots.forEach((d, idx) => d.classList.toggle("active", idx === index));
+  }
+
+  prevBtn && prevBtn.addEventListener("click", () => goTo(index - 1));
+  nextBtn && nextBtn.addEventListener("click", () => goTo(index + 1));
+  dots.forEach((d, idx) => d.addEventListener("click", () => goTo(idx)));
+
+  goTo(index);
+
+  // auto play
+  let timer = setInterval(() => goTo(index + 1), 5000);
+
+  // pause on touch/hover
+  slider.addEventListener("pointerenter", () => clearInterval(timer));
+  slider.addEventListener("pointerleave", () => {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(index + 1), 5000);
+  });
+})();
+     .hero-slider .slides{ direction:ltr; } 
+     
