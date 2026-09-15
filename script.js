@@ -1,4 +1,4 @@
-const DEFAULT_API = "https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIdguqzLIWaz7GESIG3vZqh7/exec";
+const DEFAULT_API = "https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIG3vZqh7/exec";
 
 const statuses = [
   "تم استلام المستندات",
@@ -14,6 +14,11 @@ const statuses = [
   "تم التسليم"
 ];
 
+
+/* =========================================================
+   تشغيل الموقع
+   ========================================================= */
+
 document.addEventListener("DOMContentLoaded", function () {
 
   /* السنة الحالية */
@@ -24,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  /* قائمة حالات الشحنة */
+  /* حالات الشحن في لوحة الإدارة */
   const statusSelect = document.getElementById("carStatus");
 
   if (statusSelect) {
@@ -41,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
       statusSelect.appendChild(option);
 
     });
+
   }
 
 
@@ -52,12 +58,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  /* زر حفظ إعدادات النظام */
+  /* زر إعدادات نظام المتابعة */
   const saveConfig = document.getElementById("saveConfig");
 
   if (saveConfig) {
 
     saveConfig.onclick = function () {
+
+      localStorage.setItem("kh_api", DEFAULT_API);
 
       alert("تم حفظ إعدادات نظام المتابعة");
 
@@ -66,7 +74,45 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  /* نموذج تتبع الشحنة */
+  /* =======================================================
+     قائمة الموبايل
+     ======================================================= */
+
+  const menuBtn = document.getElementById("menuBtn");
+  const mainNav = document.getElementById("mainNav");
+
+  if (menuBtn && mainNav) {
+
+    menuBtn.addEventListener("click", function () {
+
+      mainNav.classList.toggle("open");
+
+      menuBtn.classList.toggle("active");
+
+    });
+
+
+    /* إغلاق القائمة عند الضغط على أي رابط */
+
+    mainNav.querySelectorAll("a").forEach(function (link) {
+
+      link.addEventListener("click", function () {
+
+        mainNav.classList.remove("open");
+
+        menuBtn.classList.remove("active");
+
+      });
+
+    });
+
+  }
+
+
+  /* =======================================================
+     نموذج تتبع الشحنة
+     ======================================================= */
+
   const trackForm = document.getElementById("trackForm");
 
   if (trackForm) {
@@ -88,7 +134,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  /* زر حفظ السيارة من لوحة الإدارة */
+  /* =======================================================
+     زر حفظ الشحنة من لوحة الإدارة
+     ======================================================= */
+
   const saveCarButton = document.getElementById("saveCar");
 
   if (saveCarButton) {
@@ -98,41 +147,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  /* زر القائمة في الموبايل */
-  const menuToggle = document.querySelector(".menu-toggle");
-  const nav = document.querySelector(".main-nav");
+  /* تشغيل السلايدر */
 
-  if (menuToggle && nav) {
-
-    menuToggle.addEventListener("click", function () {
-
-      nav.classList.toggle("active");
-
-      menuToggle.classList.toggle("active");
-
-    });
-
-
-    /* إغلاق القائمة بعد اختيار رابط */
-    nav.querySelectorAll("a").forEach(function (link) {
-
-      link.addEventListener("click", function () {
-
-        nav.classList.remove("active");
-        menuToggle.classList.remove("active");
-
-      });
-
-    });
-
-  }
-
-
-  /* السلايدر */
   initSlider();
 
 
-  /* نموذج بدء إجراءات السيارة */
+  /* تشغيل نموذج طلب الخدمة */
+
   initLeadForm();
 
 });
@@ -232,7 +253,7 @@ function render(data, target) {
   if (!data || !data.ok) {
 
     target.innerHTML =
-      '<div class="notice" style="margin-top:18px">' +
+      '<div class="notice">' +
       'لم يتم العثور على الشحنة. تأكد من رقم الشحنة.' +
       '</div>';
 
@@ -351,6 +372,7 @@ async function showTrack(code) {
     const data = await apiGet({
 
       action: "get",
+
       code: code
 
     });
@@ -390,23 +412,30 @@ async function saveCar() {
   const codeElement =
     document.getElementById("carCode");
 
+
   const clientElement =
     document.getElementById("clientName");
+
 
   const carElement =
     document.getElementById("carInfo");
 
+
   const statusElement =
     document.getElementById("carStatus");
+
 
   const noteElement =
     document.getElementById("carNote");
 
+
   const phoneElement =
     document.getElementById("clientPhone");
 
+
   const chassisElement =
     document.getElementById("chassis");
+
 
   const adminKeyElement =
     document.getElementById("adminKey");
@@ -458,6 +487,16 @@ async function saveCar() {
     chassisElement
       ? chassisElement.value.trim()
       : "";
+
+
+  if (!adminKeyValue) {
+
+    message.innerHTML =
+      '<div class="notice">اكتب مفتاح الإدارة.</div>';
+
+    return;
+
+  }
 
 
   if (!code) {
@@ -514,7 +553,7 @@ async function saveCar() {
 
     message.innerHTML =
       '<div class="notice">' +
-      'تعذر حفظ الشحنة. تأكد من إعدادات النظام.' +
+      'تعذر حفظ الشحنة. تأكد من الاتصال بالنظام.' +
       '</div>';
 
   }
@@ -523,44 +562,134 @@ async function saveCar() {
 
 
 /* =========================================================
-   السلايدر
+   السلايدر الرئيسي
    ========================================================= */
 
 function initSlider() {
 
   const slides =
-    document.querySelectorAll(".hero-slide");
+    document.querySelectorAll(".slide");
 
 
   if (!slides.length) return;
 
 
+  const dots =
+    document.querySelectorAll(".dot");
+
+
   let current = 0;
 
 
-  slides.forEach(function (slide, index) {
-
-    slide.classList.toggle(
-      "active",
-      index === 0
-    );
-
-  });
-
-
-  setInterval(function () {
-
-    slides[current].classList.remove("active");
-
+  function showSlide(index) {
 
     current =
-      (current + 1) % slides.length;
+      (index + slides.length) % slides.length;
 
 
-    slides[current].classList.add("active");
+    slides.forEach(function (slide, i) {
+
+      slide.classList.toggle(
+        "active",
+        i === current
+      );
+
+    });
 
 
-  }, 4500);
+    dots.forEach(function (dot, i) {
+
+      dot.classList.toggle(
+        "active",
+        i === current
+      );
+
+    });
+
+  }
+
+
+  showSlide(0);
+
+
+  /* تشغيل تلقائي */
+
+  let timer = setInterval(function () {
+
+    showSlide(current + 1);
+
+  }, 5000);
+
+
+  /* السهم السابق */
+
+  const prev =
+    document.getElementById("prevSlide");
+
+
+  if (prev) {
+
+    prev.addEventListener("click", function () {
+
+      showSlide(current - 1);
+
+      clearInterval(timer);
+
+      timer = setInterval(function () {
+
+        showSlide(current + 1);
+
+      }, 5000);
+
+    });
+
+  }
+
+
+  /* السهم التالي */
+
+  const next =
+    document.getElementById("nextSlide");
+
+
+  if (next) {
+
+    next.addEventListener("click", function () {
+
+      showSlide(current + 1);
+
+      clearInterval(timer);
+
+      timer = setInterval(function () {
+
+        showSlide(current + 1);
+
+      }, 5000);
+
+    });
+
+  }
+
+
+  /* نقاط السلايدر */
+
+  dots.forEach(function (dot, index) {
+
+    dot.addEventListener("click", function () {
+
+      showSlide(index);
+
+      clearInterval(timer);
+
+      timer = setInterval(function () {
+
+        showSlide(current + 1);
+
+      }, 5000);
+
+    });
+
+  });
 
 }
 
@@ -586,25 +715,34 @@ function initLeadForm() {
     const name =
       getValue("leadName");
 
+
     const phone =
       getValue("leadPhone");
+
 
     const car =
       getValue("leadCar");
 
+
     const model =
       getValue("leadModel");
+
 
     const year =
       getValue("leadYear");
 
+
     const country =
       getValue("leadCountry");
+
 
     const service =
       getValue("leadService");
 
+
+    /* يدعم الاسمين */
     const notes =
+      getValue("leadNote") ||
       getValue("leadNotes");
 
 
@@ -685,9 +823,13 @@ function escapeHtml(value) {
       return {
 
         "&": "&amp;",
+
         "<": "&lt;",
+
         ">": "&gt;",
+
         '"': "&quot;",
+
         "'": "&#039;"
 
       }[character];
@@ -696,4 +838,4 @@ function escapeHtml(value) {
 
   );
 
-                     }
+  }
