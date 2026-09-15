@@ -1,11 +1,575 @@
-const DEFAULT_API="https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIdguqzLIWaz7GESIG3vZqh7/exec";
-const statuses=["تم استلام المستندات","جاري مراجعة المستندات","تم التسجيل المسبق للشحنة (ACID)","تم إنهاء الإجراءات","تم شحن السيارة","وصلت ميناء سفاجا","جاري التخليص الجمركي","تم إنهاء الفحص","تم الإفراج عن السيارة","خرجت من الميناء","تم التسليم"];
-document.addEventListener("DOMContentLoaded",()=>{const y=document.getElementById("year");if(y)y.textContent=new Date().getFullYear();const b=document.getElementById("menuBtn"),n=document.getElementById("mainNav");if(b&&n){b.onclick=()=>{const o=n.classList.toggle("open");b.setAttribute("aria-expanded",o)};n.querySelectorAll("a").forEach(a=>a.onclick=()=>{n.classList.remove("open");b.setAttribute("aria-expanded","false")})}initSlider();initLeadForm();const s=document.getElementById("carStatus");if(s){s.innerHTML="";statuses.forEach((x,i)=>s.add(new Option((i+1)+". "+x,i)))}const save=document.getElementById("saveCar");if(save)save.onclick=saveTrackingCar;const f=document.getElementById("trackForm");if(f)f.onsubmit=e=>{e.preventDefault();showTrack(val("trackCode"))}});
-function initSlider(){const slides=[...document.querySelectorAll(".slide")],dots=[...document.querySelectorAll(".dot")];if(!slides.length)return;let i=0,t;const show=x=>{i=(x+slides.length)%slides.length;slides.forEach((s,k)=>s.classList.toggle("active",k===i));dots.forEach((d,k)=>d.classList.toggle("active",k===i))};const restart=()=>{clearInterval(t);t=setInterval(()=>show(i+1),5000)};document.getElementById("prevSlide")?.addEventListener("click",()=>{show(i-1);restart()});document.getElementById("nextSlide")?.addEventListener("click",()=>{show(i+1);restart()});dots.forEach((d,k)=>d.onclick=()=>{show(k);restart()});restart()}
-function initLeadForm(){const f=document.getElementById("leadForm");if(!f)return;f.onsubmit=e=>{e.preventDefault();const d={name:val("leadName"),phone:val("leadPhone"),car:val("leadCar"),model:val("leadModel"),year:val("leadYear"),country:val("leadCountry"),service:val("leadService"),note:val("leadNote")};const text=["طلب جديد من موقع الخوارزمي","","الاسم: "+d.name,"الهاتف: "+d.phone,"السيارة: "+d.car,"الموديل: "+d.model,"سنة الصنع: "+d.year,"البلد: "+d.country,"الخدمة: "+d.service,"ملاحظات: "+d.note].join("\n");window.open("https://wa.me/201003299254?text="+encodeURIComponent(text),"_blank");const m=document.getElementById("leadMsg");if(m)m.textContent="تم تجهيز رسالة واتساب للتواصل السريع."}}
-function val(id){return document.getElementById(id)?.value.trim()||""}
-function apiGet(params){return new Promise((resolve,reject)=>{const cb="khCallback_"+Date.now()+Math.floor(Math.random()*100000),s=document.createElement("script"),u=new URL(DEFAULT_API);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));u.searchParams.set("callback",cb);const tm=setTimeout(()=>{clean();reject(new Error("timeout"))},15000);window[cb]=d=>{clearTimeout(tm);clean();resolve(d)};s.onerror=()=>{clearTimeout(tm);clean();reject(new Error("network"))};function clean(){delete window[cb];s.remove()}s.src=u;s.async=true;document.body.appendChild(s)})}
-async function showTrack(code){const t=document.getElementById("trackResult");if(!t)return;if(!code){t.innerHTML='<div class="notice">اكتب رقم الشحنة أولًا.</div>';return}t.innerHTML='<div class="notice">جاري البحث...</div>';try{renderTrack(await apiGet({action:"get",code}),t)}catch(e){t.innerHTML='<div class="notice">تعذر الاتصال بنظام المتابعة. حاول مرة أخرى.</div>'}}
-function renderTrack(d,t){if(!d||!d.ok){t.innerHTML='<div class="notice">لم يتم العثور على الشحنة. تأكد من رقم الشحنة.</div>';return}const c=Number(d.statusIndex||0);let h='<div class="card"><h3>'+esc(d.code||"")+'</h3><p><b>العميل:</b> '+esc(d.clientName||"—")+'<br><b>السيارة:</b> '+esc(d.carInfo||"—")+'</p>';statuses.forEach((s,i)=>h+='<div class="step '+(i<=c?"done":"")+'"><span class="dot"></span><div><strong>'+(i+1)+". "+s+'</strong>'+(i===c?'<div class="small">آخر مرحلة مسجلة</div>':"")+'</div></div>');if(d.note)h+='<div class="notice">'+esc(d.note)+'</div>';if(d.updatedAt)h+='<div class="small">آخر تحديث: '+esc(d.updatedAt)+'</div>';t.innerHTML=h+'</div>'}
-async function saveTrackingCar(){const m=document.getElementById("adminMsg");if(!m)return;const code=val("carCode"),key=val("adminKey");if(!code||!key){m.innerHTML='<div class="notice">اكتب رقم الشحنة ومفتاح الإدارة.</div>';return}m.innerHTML='<div class="notice">جاري الحفظ...</div>';try{const d=await apiGet({action:"save",key,code,clientName:val("clientName"),phone:val("clientPhone"),carInfo:val("carInfo"),chassis:val("chassis"),statusIndex:document.getElementById("carStatus")?.value||"0",note:val("carNote")});m.innerHTML='<div class="notice">'+esc(d.message||"تم الحفظ")+'</div>'}catch(e){m.innerHTML='<div class="notice">تعذر حفظ الشحنة.</div>'}}
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
+const API =
+  "https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIdguqzLIWaz7GESIG3vZqh7/exec";
+
+const STATUSES = [
+  "تم استلام المستندات",
+  "جاري مراجعة المستندات",
+  "تم التسجيل المسبق للشحنة (ACID)",
+  "تم إنهاء الإجراءات",
+  "تم شحن السيارة",
+  "وصلت ميناء سفاجا",
+  "جاري التخليص الجمركي",
+  "تم إنهاء الفحص",
+  "تم الإفراج عن السيارة",
+  "خرجت من الميناء",
+  "تم التسليم"
+];
+
+/* =========================
+   تشغيل الموقع
+========================= */
+document.addEventListener("DOMContentLoaded", () => {
+
+  /* السنة الحالية */
+  const year = document.getElementById("year");
+  if (year) {
+    year.textContent = new Date().getFullYear();
+  }
+
+  /* =========================
+     قائمة الموبايل
+  ========================= */
+  const menuBtn = document.getElementById("menuBtn");
+  const nav = document.getElementById("mainNav");
+
+  if (menuBtn && nav) {
+
+    menuBtn.setAttribute("aria-expanded", "false");
+
+    menuBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      const isOpen = nav.classList.toggle("open");
+
+      menuBtn.setAttribute(
+        "aria-expanded",
+        String(isOpen)
+      );
+
+      menuBtn.setAttribute(
+        "aria-label",
+        isOpen ? "إغلاق القائمة" : "فتح القائمة"
+      );
+    });
+
+    /* إغلاق القائمة بعد اختيار أي رابط */
+    nav.querySelectorAll("a").forEach((link) => {
+
+      link.addEventListener("click", () => {
+
+        nav.classList.remove("open");
+
+        menuBtn.setAttribute(
+          "aria-expanded",
+          "false"
+        );
+
+        menuBtn.setAttribute(
+          "aria-label",
+          "فتح القائمة"
+        );
+
+      });
+
+    });
+
+    /* إغلاق القائمة عند الضغط خارجها */
+    document.addEventListener("click", (event) => {
+
+      if (
+        nav.classList.contains("open") &&
+        !nav.contains(event.target) &&
+        event.target !== menuBtn
+      ) {
+
+        nav.classList.remove("open");
+
+        menuBtn.setAttribute(
+          "aria-expanded",
+          "false"
+        );
+
+        menuBtn.setAttribute(
+          "aria-label",
+          "فتح القائمة"
+        );
+      }
+
+    });
+
+  }
+
+
+  /* =========================
+     نموذج طلب الخدمة
+  ========================= */
+  const leadForm = document.getElementById("leadForm");
+
+  if (leadForm) {
+
+    leadForm.addEventListener("submit", (event) => {
+
+      event.preventDefault();
+
+      const data = {
+        name: value("leadName"),
+        phone: value("leadPhone"),
+        car: value("leadCar"),
+        model: value("leadModel"),
+        year: value("leadYear"),
+        country: value("leadCountry"),
+        service: value("leadService"),
+        note: value("leadNote")
+      };
+
+      if (!data.name || !data.phone) {
+
+        const msg = document.getElementById("leadMsg");
+
+        if (msg) {
+          msg.textContent =
+            "من فضلك اكتب الاسم ورقم الهاتف.";
+        }
+
+        return;
+      }
+
+      const message = [
+        "طلب جديد من موقع شركة الخوارزمي",
+        "",
+        `الاسم: ${data.name}`,
+        `الهاتف / واتساب: ${data.phone}`,
+        `السيارة: ${data.car || "غير محدد"}`,
+        `الموديل: ${data.model || "غير محدد"}`,
+        `سنة الصنع: ${data.year || "غير محددة"}`,
+        `بلد السيارة: ${data.country || "غير محدد"}`,
+        `الخدمة المطلوبة: ${data.service || "غير محددة"}`,
+        `ملاحظات: ${data.note || "لا يوجد"}`
+      ].join("\n");
+
+      const whatsappURL =
+        "https://wa.me/201003299254?text=" +
+        encodeURIComponent(message);
+
+      window.open(
+        whatsappURL,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      const msg = document.getElementById("leadMsg");
+
+      if (msg) {
+        msg.textContent =
+          "تم تجهيز رسالة واتساب للتواصل السريع.";
+      }
+
+    });
+
+  }
+
+
+  /* =========================
+     نموذج تتبع الشحنة
+  ========================= */
+  const trackForm = document.getElementById("trackForm");
+
+  if (trackForm) {
+
+    trackForm.addEventListener("submit", (event) => {
+
+      event.preventDefault();
+
+      const code = value("trackCode");
+
+      trackShipment(code);
+
+    });
+
+  }
+
+
+  /* تحويل رقم الشحنة لحروف كبيرة */
+  const trackCode = document.getElementById("trackCode");
+
+  if (trackCode) {
+
+    trackCode.addEventListener("input", () => {
+
+      trackCode.value =
+        trackCode.value.toUpperCase();
+
+    });
+
+  }
+
+
+  /* الضغط على Enter في رقم الشحنة */
+  if (trackCode) {
+
+    trackCode.addEventListener("keydown", (event) => {
+
+      if (event.key === "Enter") {
+
+        event.preventDefault();
+
+        trackShipment(trackCode.value);
+
+      }
+
+    });
+
+  }
+
+});
+
+
+/* =========================
+   قراءة قيمة عنصر
+========================= */
+function value(id) {
+
+  const element =
+    document.getElementById(id);
+
+  if (!element) {
+    return "";
+  }
+
+  return String(element.value || "").trim();
+
+}
+
+
+/* =========================
+   الاتصال بـ Google Apps Script
+   باستخدام JSONP
+========================= */
+function api(params) {
+
+  return new Promise((resolve, reject) => {
+
+    const callbackName =
+      "khwarizmi_" +
+      Date.now() +
+      "_" +
+      Math.random()
+        .toString(36)
+        .substring(2);
+
+    const script =
+      document.createElement("script");
+
+    const url = new URL(API);
+
+    Object.entries(params).forEach(
+      ([key, val]) => {
+
+        url.searchParams.set(
+          key,
+          val == null ? "" : String(val)
+        );
+
+      }
+    );
+
+    url.searchParams.set(
+      "callback",
+      callbackName
+    );
+
+    let finished = false;
+
+    const timeout =
+      setTimeout(() => {
+
+        if (finished) return;
+
+        finished = true;
+
+        cleanup();
+
+        reject(
+          new Error("Request timeout")
+        );
+
+      }, 15000);
+
+
+    window[callbackName] = (data) => {
+
+      if (finished) return;
+
+      finished = true;
+
+      clearTimeout(timeout);
+
+      cleanup();
+
+      resolve(data);
+
+    };
+
+
+    script.onerror = () => {
+
+      if (finished) return;
+
+      finished = true;
+
+      clearTimeout(timeout);
+
+      cleanup();
+
+      reject(
+        new Error("API connection error")
+      );
+
+    };
+
+
+    function cleanup() {
+
+      try {
+        delete window[callbackName];
+      } catch (error) {
+        window[callbackName] = undefined;
+      }
+
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+
+    }
+
+
+    script.src = url.toString();
+
+    document.body.appendChild(script);
+
+  });
+
+}
+
+
+/* =========================
+   تتبع الشحنة
+========================= */
+async function trackShipment(code) {
+
+  const result =
+    document.getElementById("trackResult");
+
+  if (!result) {
+    return;
+  }
+
+
+  code = String(code || "")
+    .trim()
+    .toUpperCase();
+
+
+  if (!code) {
+
+    result.innerHTML =
+      '<div class="notice">اكتب رقم الشحنة أولًا.</div>';
+
+    return;
+
+  }
+
+
+  result.innerHTML =
+    '<div class="notice">جاري البحث عن الشحنة...</div>';
+
+
+  try {
+
+    const data = await api({
+      action: "get",
+      code: code
+    });
+
+
+    if (!data || !data.ok) {
+
+      result.innerHTML =
+        '<div class="notice">لم يتم العثور على الشحنة بهذا الرقم.</div>';
+
+      return;
+
+    }
+
+
+    const currentIndex =
+      Number(data.statusIndex || 0);
+
+
+    let html = `
+
+      <div class="card tracking-card">
+
+        <h3>
+          الشحنة:
+          ${escapeHTML(data.code)}
+        </h3>
+
+        <p>
+
+          <b>العميل:</b>
+          ${escapeHTML(data.clientName || "—")}
+
+          <br>
+
+          <b>السيارة:</b>
+          ${escapeHTML(data.carInfo || "—")}
+
+          <br>
+
+          <b>آخر تحديث:</b>
+          ${escapeHTML(formatDate(data.updatedAt) || "—")}
+
+        </p>
+
+        <div class="tracking-steps">
+
+    `;
+
+
+    STATUSES.forEach((status, index) => {
+
+      const completed =
+        index <= currentIndex;
+
+      html += `
+
+        <div class="step ${completed ? "done" : ""}">
+
+          <span class="dot"></span>
+
+          <strong>
+            ${escapeHTML(
+              `${index + 1}. ${status}`
+            )}
+          </strong>
+
+        </div>
+
+      `;
+
+    });
+
+
+    html += `
+
+        </div>
+
+    `;
+
+
+    if (data.note) {
+
+      html += `
+
+        <div class="notice tracking-note">
+
+          ${escapeHTML(data.note)}
+
+        </div>
+
+      `;
+
+    }
+
+
+    html += `</div>`;
+
+
+    result.innerHTML = html;
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    result.innerHTML = `
+
+      <div class="notice">
+
+        تعذر الاتصال بنظام المتابعة.
+        حاول مرة أخرى بعد قليل.
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================
+   توافق مع أي استدعاء قديم
+========================= */
+function track(code) {
+  return trackShipment(code);
+}
+
+
+/* =========================
+   تنسيق التاريخ
+========================= */
+function formatDate(value) {
+
+  if (!value) {
+    return "";
+  }
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  return date.toLocaleString(
+    "ar-EG",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
+
+}
+
+
+/* =========================
+   حماية عرض البيانات
+========================= */
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replace(
+      /[&<>"']/g,
+      (char) => {
+
+        const entities = {
+
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+
+        };
+
+        return entities[char];
+
+      }
+    );
+
+    }
