@@ -1,3 +1,7 @@
+// ===============================
+// شركة الخوارزمي - Main Script
+// ===============================
+
 const API =
   "https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIdguqzLIWaz7GESIG3vZqh7/exec";
 
@@ -15,201 +19,132 @@ const STATUSES = [
   "تم التسليم"
 ];
 
-/* =========================
-   تشغيل الموقع
-========================= */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
-  /* السنة */
-  const year = document.getElementById("year");
+  // ===============================
+  // Mobile Menu
+  // ===============================
 
-  if (year) {
-    year.textContent = new Date().getFullYear();
-  }
-
-
-  /* =========================
-     القائمة الرئيسية - الموبايل
-  ========================= */
   const menuBtn = document.getElementById("menuBtn");
   const nav = document.getElementById("mainNav");
 
   if (menuBtn && nav) {
 
-    menuBtn.setAttribute("aria-expanded", "false");
+    menuBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
 
-    menuBtn.addEventListener("click", (event) => {
-
-      event.stopPropagation();
-
-      const open = nav.classList.toggle("open");
+      const isOpen = nav.classList.toggle("open");
 
       menuBtn.setAttribute(
         "aria-expanded",
-        String(open)
+        isOpen ? "true" : "false"
       );
-
-      menuBtn.setAttribute(
-        "aria-label",
-        open ? "إغلاق القائمة" : "فتح القائمة"
-      );
-
     });
 
-
-    /* إغلاق القائمة بعد اختيار رابط */
-    nav.querySelectorAll("a").forEach((link) => {
-
-      link.addEventListener("click", () => {
-
+    // إغلاق القائمة عند الضغط على أي رابط
+    nav.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
         nav.classList.remove("open");
-
-        menuBtn.setAttribute(
-          "aria-expanded",
-          "false"
-        );
-
-        menuBtn.setAttribute(
-          "aria-label",
-          "فتح القائمة"
-        );
-
+        menuBtn.setAttribute("aria-expanded", "false");
       });
-
     });
 
-
-    /* إغلاق القائمة عند الضغط خارجها */
-    document.addEventListener("click", (event) => {
-
+    // إغلاق القائمة عند الضغط خارجها
+    document.addEventListener("click", function (e) {
       if (
         nav.classList.contains("open") &&
-        !nav.contains(event.target) &&
-        event.target !== menuBtn
+        !nav.contains(e.target) &&
+        !menuBtn.contains(e.target)
       ) {
-
         nav.classList.remove("open");
-
-        menuBtn.setAttribute(
-          "aria-expanded",
-          "false"
-        );
-
-        menuBtn.setAttribute(
-          "aria-label",
-          "فتح القائمة"
-        );
-
+        menuBtn.setAttribute("aria-expanded", "false");
       }
-
     });
 
   }
 
 
-  /* =========================
-     نموذج طلب الخدمة
-  ========================= */
+  // ===============================
+  // Lead Form
+  // ===============================
+
   const leadForm = document.getElementById("leadForm");
 
   if (leadForm) {
 
-    leadForm.addEventListener("submit", (event) => {
+    leadForm.addEventListener("submit", function (e) {
+      e.preventDefault();
 
-      event.preventDefault();
+      const name = getValue("leadName");
+      const phone = getValue("leadPhone");
+      const car = getValue("leadCar");
+      const model = getValue("leadModel");
+      const year = getValue("leadYear");
+      const country = getValue("leadCountry");
+      const service = getValue("leadService");
+      const note = getValue("leadNote");
 
-      const data = {
-        name: getValue("leadName"),
-        phone: getValue("leadPhone"),
-        car: getValue("leadCar"),
-        model: getValue("leadModel"),
-        year: getValue("leadYear"),
-        country: getValue("leadCountry"),
-        service: getValue("leadService"),
-        note: getValue("leadNote")
-      };
-
-
-      /* التحقق من البيانات الأساسية */
-      if (!data.name || !data.phone) {
-
-        showLeadMessage(
-          "من فضلك اكتب الاسم ورقم الهاتف."
-        );
-
+      if (!name || !phone) {
+        showLeadMessage("من فضلك اكتب الاسم ورقم الهاتف أو الواتساب.");
         return;
-
       }
 
+      let message =
+        "السلام عليكم، أريد الاستفسار عن تخليص سيارة.%0A%0A" +
+        "الاسم: " + encodeURIComponent(name) + "%0A" +
+        "رقم الهاتف/واتساب: " + encodeURIComponent(phone) + "%0A" +
+        "نوع السيارة: " + encodeURIComponent(car) + "%0A" +
+        "الموديل: " + encodeURIComponent(model) + "%0A" +
+        "سنة الصنع: " + encodeURIComponent(year) + "%0A" +
+        "بلد السيارة: " + encodeURIComponent(country) + "%0A" +
+        "الخدمة المطلوبة: " + encodeURIComponent(service) + "%0A" +
+        "ملاحظات: " + encodeURIComponent(note);
 
-      /* رسالة واتساب */
-      const message = [
-        "طلب جديد من موقع شركة الخوارزمي",
-        "",
-        `الاسم: ${data.name}`,
-        `الهاتف / واتساب: ${data.phone}`,
-        `السيارة: ${data.car || "غير محدد"}`,
-        `الموديل: ${data.model || "غير محدد"}`,
-        `سنة الصنع: ${data.year || "غير محددة"}`,
-        `بلد السيارة: ${data.country || "غير محدد"}`,
-        `الخدمة المطلوبة: ${data.service || "غير محددة"}`,
-        `ملاحظات: ${data.note || "لا يوجد"}`
-      ].join("\n");
+      const whatsapp =
+        "https://wa.me/201003299254?text=" + message;
 
+      window.open(whatsapp, "_blank");
 
-      const whatsappURL =
-        "https://wa.me/201003299254?text=" +
-        encodeURIComponent(message);
-
-
-      window.open(
-        whatsappURL,
-        "_blank",
-        "noopener,noreferrer"
-      );
-
-
-      showLeadMessage(
-        "تم تجهيز رسالة واتساب للتواصل السريع."
-      );
-
+      showLeadMessage("تم تجهيز طلبك، وسيتم فتح واتساب لإرسال البيانات.");
     });
 
   }
 
 
-  /* =========================
-     نموذج تتبع الشحنة
-  ========================= */
-  const trackForm =
-    document.getElementById("trackForm");
+  // ===============================
+  // Tracking Form
+  // ===============================
+
+  const trackForm = document.getElementById("trackForm");
 
   if (trackForm) {
 
-    trackForm.addEventListener("submit", (event) => {
+    trackForm.addEventListener("submit", function (e) {
+      e.preventDefault();
 
-      event.preventDefault();
+      const code = getValue("trackCode");
 
-      trackShipment(
-        getValue("trackCode")
-      );
+      if (!code) {
+        showTrackMessage("من فضلك أدخل رقم الشحنة.");
+        return;
+      }
 
+      trackShipment(code);
     });
 
   }
 
 
-  /* كتابة رقم الشحنة */
-  const trackCode =
-    document.getElementById("trackCode");
+  // ===============================
+  // تحويل رقم الشحنة إلى حروف كبيرة
+  // ===============================
+
+  const trackCode = document.getElementById("trackCode");
 
   if (trackCode) {
 
-    trackCode.addEventListener("input", () => {
-
-      trackCode.value =
-        trackCode.value.toUpperCase();
-
+    trackCode.addEventListener("input", function () {
+      this.value = this.value.toUpperCase();
     });
 
   }
@@ -217,423 +152,431 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-/* =========================
-   الحصول على قيمة عنصر
-========================= */
-function getValue(id) {
+// ===============================
+// Get Value
+// ===============================
 
-  const element =
-    document.getElementById(id);
+function getValue(id) {
+  const element = document.getElementById(id);
 
   if (!element) {
     return "";
   }
 
-  return String(
-    element.value || ""
-  ).trim();
-
+  return String(element.value || "").trim();
 }
 
 
-/* =========================
-   رسالة نموذج التواصل
-========================= */
+// ===============================
+// Lead Message
+// ===============================
+
 function showLeadMessage(message) {
 
-  const element =
-    document.getElementById("leadMsg");
+  const box = document.getElementById("leadMsg");
 
-  if (element) {
-    element.textContent = message;
+  if (!box) {
+    return;
   }
+
+  box.textContent = message;
+  box.style.display = "block";
 
 }
 
 
-/* =========================
-   الاتصال بـ Google Apps Script
-   باستخدام JSONP
-========================= */
+// ===============================
+// Tracking Message
+// ===============================
+
+function showTrackMessage(message) {
+
+  const box = document.getElementById("trackResult");
+
+  if (!box) {
+    return;
+  }
+
+  box.style.display = "block";
+
+  box.innerHTML =
+    '<div class="track-error">' +
+    escapeHTML(message) +
+    "</div>";
+}
+
+
+// ===============================
+// JSONP API
+// ===============================
+
 function api(params) {
 
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
 
     const callbackName =
-      "khwarizmi_" +
+      "alkhwarizmiCallback_" +
       Date.now() +
       "_" +
-      Math.random()
-        .toString(36)
-        .substring(2);
+      Math.floor(Math.random() * 100000);
 
+    const script = document.createElement("script");
 
-    const script =
-      document.createElement("script");
+    const query = new URLSearchParams(params);
 
+    query.set("callback", callbackName);
 
-    const url =
-      new URL(API);
-
-
-    Object.entries(params).forEach(
-      ([key, value]) => {
-
-        url.searchParams.set(
-          key,
-          value == null ? "" : String(value)
-        );
-
-      }
-    );
-
-
-    url.searchParams.set(
-      "callback",
-      callbackName
-    );
-
+    script.src = API + "?" + query.toString();
 
     let finished = false;
 
-
-    const timeout =
-      setTimeout(() => {
-
-        if (finished) return;
-
-        finished = true;
-
-        cleanup();
-
-        reject(
-          new Error("Request timeout")
-        );
-
-      }, 15000);
-
-
-    window[callbackName] =
-      (data) => {
-
-        if (finished) return;
-
-        finished = true;
-
-        clearTimeout(timeout);
-
-        cleanup();
-
-        resolve(data);
-
-      };
-
-
-    script.onerror = () => {
-
-      if (finished) return;
-
-      finished = true;
-
-      clearTimeout(timeout);
-
-      cleanup();
-
-      reject(
-        new Error("API connection error")
-      );
-
-    };
-
-
     function cleanup() {
 
-      try {
-
-        delete window[callbackName];
-
-      } catch (error) {
-
-        window[callbackName] = undefined;
-
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
       }
 
-
-      if (script.parentNode) {
-
-        script.parentNode.removeChild(
-          script
-        );
-
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
       }
 
     }
 
+    window[callbackName] = function (data) {
 
-    script.src =
-      url.toString();
+      if (finished) {
+        return;
+      }
 
+      finished = true;
 
-    document.body.appendChild(
-      script
-    );
+      cleanup();
+
+      resolve(data);
+
+    };
+
+    script.onerror = function () {
+
+      if (finished) {
+        return;
+      }
+
+      finished = true;
+
+      cleanup();
+
+      reject(
+        new Error("تعذر الاتصال بخدمة التتبع.")
+      );
+
+    };
+
+    document.body.appendChild(script);
+
+    // Timeout
+    setTimeout(function () {
+
+      if (finished) {
+        return;
+      }
+
+      finished = true;
+
+      cleanup();
+
+      reject(
+        new Error("انتهت مهلة الاتصال بخدمة التتبع.")
+      );
+
+    }, 15000);
 
   });
 
 }
 
 
-/* =========================
-   تتبع الشحنة
-========================= */
+// ===============================
+// Track Shipment
+// ===============================
+
 async function trackShipment(code) {
 
-  const result =
+  const resultBox =
     document.getElementById("trackResult");
 
-
-  if (!result) {
+  if (!resultBox) {
     return;
   }
 
-
-  code =
-    String(code || "")
-      .trim()
-      .toUpperCase();
-
+  code = String(code || "")
+    .trim()
+    .toUpperCase();
 
   if (!code) {
-
-    result.innerHTML =
-      '<div class="notice">اكتب رقم الشحنة أولًا.</div>';
-
+    showTrackMessage("من فضلك أدخل رقم الشحنة.");
     return;
-
   }
 
+  resultBox.style.display = "block";
 
-  result.innerHTML =
-    '<div class="notice">جاري البحث عن الشحنة...</div>';
-
+  resultBox.innerHTML =
+    '<div class="track-loading">' +
+    "جاري البحث عن الشحنة..." +
+    "</div>";
 
   try {
 
-    const data =
-      await api({
-        action: "get",
-        code: code
-      });
+    const data = await api({
+      action: "get",
+      code: code
+    });
 
+    if (!data || data.ok !== true) {
 
-    if (!data || !data.ok) {
-
-      result.innerHTML =
-        '<div class="notice">لم يتم العثور على الشحنة بهذا الرقم.</div>';
+      resultBox.innerHTML =
+        '<div class="track-error">' +
+        escapeHTML(
+          data && data.message
+            ? data.message
+            : "رقم الشحنة غير موجود."
+        ) +
+        "</div>";
 
       return;
-
     }
 
-
-    const currentIndex =
-      Number(
-        data.statusIndex || 0
-      );
-
-
-    let html = `
-
-      <div class="card tracking-card">
-
-        <h3>
-          الشحنة:
-          ${escapeHTML(data.code)}
-        </h3>
-
-        <p>
-
-          <b>العميل:</b>
-          ${escapeHTML(
-            data.clientName || "—"
-          )}
-
-          <br>
-
-          <b>السيارة:</b>
-          ${escapeHTML(
-            data.carInfo || "—"
-          )}
-
-          <br>
-
-          <b>آخر تحديث:</b>
-          ${escapeHTML(
-            formatDate(data.updatedAt) || "—"
-          )}
-
-        </p>
-
-        <div class="tracking-steps">
-
-    `;
-
-
-    STATUSES.forEach(
-      (status, index) => {
-
-        const completed =
-          index <= currentIndex;
-
-
-        html += `
-
-          <div class="step ${completed ? "done" : ""}">
-
-            <span class="dot"></span>
-
-            <strong>
-              ${escapeHTML(
-                `${index + 1}. ${status}`
-              )}
-            </strong>
-
-          </div>
-
-        `;
-
-      }
-    );
-
-
-    html += `
-
-        </div>
-
-    `;
-
-
-    /* الملاحظات */
-    if (data.note) {
-
-      html += `
-
-        <div class="notice tracking-note">
-
-          ${escapeHTML(
-            data.note
-          )}
-
-        </div>
-
-      `;
-
-    }
-
-
-    html += "</div>";
-
-
-    result.innerHTML =
-      html;
-
+    renderTrackingResult(data);
 
   } catch (error) {
 
-    console.error(
-      "Tracking error:",
-      error
-    );
-
-
-    result.innerHTML = `
-
-      <div class="notice">
-
-        تعذر الاتصال بنظام المتابعة.
-        حاول مرة أخرى بعد قليل.
-
-      </div>
-
-    `;
+    resultBox.innerHTML =
+      '<div class="track-error">' +
+      escapeHTML(
+        error.message ||
+        "حدث خطأ أثناء الاتصال بخدمة التتبع."
+      ) +
+      "</div>";
 
   }
 
 }
 
 
-/* =========================
-   توافق مع الكود القديم
-========================= */
-function track(code) {
+// ===============================
+// Render Tracking Result
+// ===============================
 
-  return trackShipment(code);
+function renderTrackingResult(data) {
+
+  const resultBox =
+    document.getElementById("trackResult");
+
+  if (!resultBox) {
+    return;
+  }
+
+  const status = String(data.status || "");
+
+  let currentIndex =
+    Number.isFinite(Number(data.statusIndex))
+      ? Number(data.statusIndex)
+      : STATUSES.indexOf(status);
+
+  if (currentIndex < 0) {
+    currentIndex = 0;
+  }
+
+  const updated =
+    formatDate(data.updatedAt);
+
+  let html = "";
+
+  html += '<div class="tracking-card">';
+
+  html +=
+    '<div class="tracking-head">' +
+    "<h3>بيانات الشحنة</h3>" +
+    "</div>";
+
+  html += '<div class="tracking-info">';
+
+  html +=
+    '<div class="tracking-item">' +
+    "<span>رقم الشحنة</span>" +
+    "<strong>" +
+    escapeHTML(data.code || "") +
+    "</strong>" +
+    "</div>";
+
+  if (data.clientName) {
+
+    html +=
+      '<div class="tracking-item">' +
+      "<span>اسم العميل</span>" +
+      "<strong>" +
+      escapeHTML(data.clientName) +
+      "</strong>" +
+      "</div>";
+
+  }
+
+  if (data.carInfo) {
+
+    html +=
+      '<div class="tracking-item">' +
+      "<span>السيارة</span>" +
+      "<strong>" +
+      escapeHTML(data.carInfo) +
+      "</strong>" +
+      "</div>";
+
+  }
+
+  if (data.chassis) {
+
+    html +=
+      '<div class="tracking-item">' +
+      "<span>رقم الشاسيه</span>" +
+      "<strong>" +
+      escapeHTML(data.chassis) +
+      "</strong>" +
+      "</div>";
+
+  }
+
+  if (updated) {
+
+    html +=
+      '<div class="tracking-item">' +
+      "<span>آخر تحديث</span>" +
+      "<strong>" +
+      escapeHTML(updated) +
+      "</strong>" +
+      "</div>";
+
+  }
+
+  html += "</div>";
+
+  // الحالة الحالية
+  html +=
+    '<div class="current-status">' +
+    "<span>الحالة الحالية</span>" +
+    "<strong>" +
+    escapeHTML(status) +
+    "</strong>" +
+    "</div>";
+
+  // Timeline
+  html += '<div class="tracking-timeline">';
+
+  STATUSES.forEach(function (item, index) {
+
+    let state = "";
+
+    if (index < currentIndex) {
+      state = "done";
+    } else if (index === currentIndex) {
+      state = "active";
+    } else {
+      state = "pending";
+    }
+
+    html +=
+      '<div class="timeline-item ' +
+      state +
+      '">';
+
+    html +=
+      '<div class="timeline-dot"></div>';
+
+    html +=
+      '<div class="timeline-text">' +
+      escapeHTML(item) +
+      "</div>";
+
+    html += "</div>";
+
+  });
+
+  html += "</div>";
+
+  // Notes
+  if (data.note) {
+
+    html +=
+      '<div class="tracking-note">' +
+      "<strong>ملاحظات:</strong><br>" +
+      escapeHTML(data.note) +
+      "</div>";
+
+  }
+
+  html += "</div>";
+
+  resultBox.innerHTML = html;
 
 }
 
 
-/* =========================
-   تنسيق التاريخ
-========================= */
+// ===============================
+// Compatibility Function
+// ===============================
+
+function track(code) {
+  return trackShipment(code);
+}
+
+
+// ===============================
+// Format Date
+// ===============================
+
 function formatDate(value) {
 
   if (!value) {
     return "";
   }
 
+  try {
 
-  const date =
-    new Date(value);
+    const date = new Date(value);
 
+    if (isNaN(date.getTime())) {
+      return String(value);
+    }
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+    return date.toLocaleString("ar-EG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+  } catch (e) {
 
     return String(value);
 
   }
 
-
-  return date.toLocaleString(
-    "ar-EG",
-    {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  );
-
 }
 
 
-/* =========================
-   حماية عرض البيانات
-========================= */
+// ===============================
+// Escape HTML
+// ===============================
+
 function escapeHTML(value) {
 
   return String(value ?? "")
-    .replace(
-      /[&<>"']/g,
-      (char) => {
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 
-        const entities = {
-
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#039;"
-
-        };
-
-        return entities[char];
-
-      }
-    );
-
-        }
+}
