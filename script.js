@@ -20,14 +20,16 @@ const STATUSES = [
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* السنة الحالية */
+  /* السنة */
   const year = document.getElementById("year");
+
   if (year) {
     year.textContent = new Date().getFullYear();
   }
 
+
   /* =========================
-     قائمة الموبايل
+     القائمة الرئيسية - الموبايل
   ========================= */
   const menuBtn = document.getElementById("menuBtn");
   const nav = document.getElementById("mainNav");
@@ -37,22 +39,25 @@ document.addEventListener("DOMContentLoaded", () => {
     menuBtn.setAttribute("aria-expanded", "false");
 
     menuBtn.addEventListener("click", (event) => {
+
       event.stopPropagation();
 
-      const isOpen = nav.classList.toggle("open");
+      const open = nav.classList.toggle("open");
 
       menuBtn.setAttribute(
         "aria-expanded",
-        String(isOpen)
+        String(open)
       );
 
       menuBtn.setAttribute(
         "aria-label",
-        isOpen ? "إغلاق القائمة" : "فتح القائمة"
+        open ? "إغلاق القائمة" : "فتح القائمة"
       );
+
     });
 
-    /* إغلاق القائمة بعد اختيار أي رابط */
+
+    /* إغلاق القائمة بعد اختيار رابط */
     nav.querySelectorAll("a").forEach((link) => {
 
       link.addEventListener("click", () => {
@@ -72,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
     });
+
 
     /* إغلاق القائمة عند الضغط خارجها */
     document.addEventListener("click", (event) => {
@@ -93,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
           "aria-label",
           "فتح القائمة"
         );
+
       }
 
     });
@@ -112,28 +119,30 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
 
       const data = {
-        name: value("leadName"),
-        phone: value("leadPhone"),
-        car: value("leadCar"),
-        model: value("leadModel"),
-        year: value("leadYear"),
-        country: value("leadCountry"),
-        service: value("leadService"),
-        note: value("leadNote")
+        name: getValue("leadName"),
+        phone: getValue("leadPhone"),
+        car: getValue("leadCar"),
+        model: getValue("leadModel"),
+        year: getValue("leadYear"),
+        country: getValue("leadCountry"),
+        service: getValue("leadService"),
+        note: getValue("leadNote")
       };
 
+
+      /* التحقق من البيانات الأساسية */
       if (!data.name || !data.phone) {
 
-        const msg = document.getElementById("leadMsg");
-
-        if (msg) {
-          msg.textContent =
-            "من فضلك اكتب الاسم ورقم الهاتف.";
-        }
+        showLeadMessage(
+          "من فضلك اكتب الاسم ورقم الهاتف."
+        );
 
         return;
+
       }
 
+
+      /* رسالة واتساب */
       const message = [
         "طلب جديد من موقع شركة الخوارزمي",
         "",
@@ -147,9 +156,11 @@ document.addEventListener("DOMContentLoaded", () => {
         `ملاحظات: ${data.note || "لا يوجد"}`
       ].join("\n");
 
+
       const whatsappURL =
         "https://wa.me/201003299254?text=" +
         encodeURIComponent(message);
+
 
       window.open(
         whatsappURL,
@@ -157,12 +168,10 @@ document.addEventListener("DOMContentLoaded", () => {
         "noopener,noreferrer"
       );
 
-      const msg = document.getElementById("leadMsg");
 
-      if (msg) {
-        msg.textContent =
-          "تم تجهيز رسالة واتساب للتواصل السريع.";
-      }
+      showLeadMessage(
+        "تم تجهيز رسالة واتساب للتواصل السريع."
+      );
 
     });
 
@@ -172,7 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* =========================
      نموذج تتبع الشحنة
   ========================= */
-  const trackForm = document.getElementById("trackForm");
+  const trackForm =
+    document.getElementById("trackForm");
 
   if (trackForm) {
 
@@ -180,17 +190,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       event.preventDefault();
 
-      const code = value("trackCode");
-
-      trackShipment(code);
+      trackShipment(
+        getValue("trackCode")
+      );
 
     });
 
   }
 
 
-  /* تحويل رقم الشحنة لحروف كبيرة */
-  const trackCode = document.getElementById("trackCode");
+  /* كتابة رقم الشحنة */
+  const trackCode =
+    document.getElementById("trackCode");
 
   if (trackCode) {
 
@@ -203,31 +214,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-
-  /* الضغط على Enter في رقم الشحنة */
-  if (trackCode) {
-
-    trackCode.addEventListener("keydown", (event) => {
-
-      if (event.key === "Enter") {
-
-        event.preventDefault();
-
-        trackShipment(trackCode.value);
-
-      }
-
-    });
-
-  }
-
 });
 
 
 /* =========================
-   قراءة قيمة عنصر
+   الحصول على قيمة عنصر
 ========================= */
-function value(id) {
+function getValue(id) {
 
   const element =
     document.getElementById(id);
@@ -236,7 +229,24 @@ function value(id) {
     return "";
   }
 
-  return String(element.value || "").trim();
+  return String(
+    element.value || ""
+  ).trim();
+
+}
+
+
+/* =========================
+   رسالة نموذج التواصل
+========================= */
+function showLeadMessage(message) {
+
+  const element =
+    document.getElementById("leadMsg");
+
+  if (element) {
+    element.textContent = message;
+  }
 
 }
 
@@ -257,28 +267,35 @@ function api(params) {
         .toString(36)
         .substring(2);
 
+
     const script =
       document.createElement("script");
 
-    const url = new URL(API);
+
+    const url =
+      new URL(API);
+
 
     Object.entries(params).forEach(
-      ([key, val]) => {
+      ([key, value]) => {
 
         url.searchParams.set(
           key,
-          val == null ? "" : String(val)
+          value == null ? "" : String(value)
         );
 
       }
     );
+
 
     url.searchParams.set(
       "callback",
       callbackName
     );
 
+
     let finished = false;
+
 
     const timeout =
       setTimeout(() => {
@@ -296,19 +313,20 @@ function api(params) {
       }, 15000);
 
 
-    window[callbackName] = (data) => {
+    window[callbackName] =
+      (data) => {
 
-      if (finished) return;
+        if (finished) return;
 
-      finished = true;
+        finished = true;
 
-      clearTimeout(timeout);
+        clearTimeout(timeout);
 
-      cleanup();
+        cleanup();
 
-      resolve(data);
+        resolve(data);
 
-    };
+      };
 
 
     script.onerror = () => {
@@ -331,21 +349,34 @@ function api(params) {
     function cleanup() {
 
       try {
+
         delete window[callbackName];
+
       } catch (error) {
+
         window[callbackName] = undefined;
+
       }
 
+
       if (script.parentNode) {
-        script.parentNode.removeChild(script);
+
+        script.parentNode.removeChild(
+          script
+        );
+
       }
 
     }
 
 
-    script.src = url.toString();
+    script.src =
+      url.toString();
 
-    document.body.appendChild(script);
+
+    document.body.appendChild(
+      script
+    );
 
   });
 
@@ -360,14 +391,16 @@ async function trackShipment(code) {
   const result =
     document.getElementById("trackResult");
 
+
   if (!result) {
     return;
   }
 
 
-  code = String(code || "")
-    .trim()
-    .toUpperCase();
+  code =
+    String(code || "")
+      .trim()
+      .toUpperCase();
 
 
   if (!code) {
@@ -386,10 +419,11 @@ async function trackShipment(code) {
 
   try {
 
-    const data = await api({
-      action: "get",
-      code: code
-    });
+    const data =
+      await api({
+        action: "get",
+        code: code
+      });
 
 
     if (!data || !data.ok) {
@@ -403,7 +437,9 @@ async function trackShipment(code) {
 
 
     const currentIndex =
-      Number(data.statusIndex || 0);
+      Number(
+        data.statusIndex || 0
+      );
 
 
     let html = `
@@ -418,17 +454,23 @@ async function trackShipment(code) {
         <p>
 
           <b>العميل:</b>
-          ${escapeHTML(data.clientName || "—")}
+          ${escapeHTML(
+            data.clientName || "—"
+          )}
 
           <br>
 
           <b>السيارة:</b>
-          ${escapeHTML(data.carInfo || "—")}
+          ${escapeHTML(
+            data.carInfo || "—"
+          )}
 
           <br>
 
           <b>آخر تحديث:</b>
-          ${escapeHTML(formatDate(data.updatedAt) || "—")}
+          ${escapeHTML(
+            formatDate(data.updatedAt) || "—"
+          )}
 
         </p>
 
@@ -437,28 +479,31 @@ async function trackShipment(code) {
     `;
 
 
-    STATUSES.forEach((status, index) => {
+    STATUSES.forEach(
+      (status, index) => {
 
-      const completed =
-        index <= currentIndex;
+        const completed =
+          index <= currentIndex;
 
-      html += `
 
-        <div class="step ${completed ? "done" : ""}">
+        html += `
 
-          <span class="dot"></span>
+          <div class="step ${completed ? "done" : ""}">
 
-          <strong>
-            ${escapeHTML(
-              `${index + 1}. ${status}`
-            )}
-          </strong>
+            <span class="dot"></span>
 
-        </div>
+            <strong>
+              ${escapeHTML(
+                `${index + 1}. ${status}`
+              )}
+            </strong>
 
-      `;
+          </div>
 
-    });
+        `;
+
+      }
+    );
 
 
     html += `
@@ -468,13 +513,16 @@ async function trackShipment(code) {
     `;
 
 
+    /* الملاحظات */
     if (data.note) {
 
       html += `
 
         <div class="notice tracking-note">
 
-          ${escapeHTML(data.note)}
+          ${escapeHTML(
+            data.note
+          )}
 
         </div>
 
@@ -483,15 +531,20 @@ async function trackShipment(code) {
     }
 
 
-    html += `</div>`;
+    html += "</div>";
 
 
-    result.innerHTML = html;
+    result.innerHTML =
+      html;
 
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Tracking error:",
+      error
+    );
+
 
     result.innerHTML = `
 
@@ -510,10 +563,12 @@ async function trackShipment(code) {
 
 
 /* =========================
-   توافق مع أي استدعاء قديم
+   توافق مع الكود القديم
 ========================= */
 function track(code) {
+
   return trackShipment(code);
+
 }
 
 
@@ -526,12 +581,21 @@ function formatDate(value) {
     return "";
   }
 
+
   const date =
     new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
     return String(value);
+
   }
+
 
   return date.toLocaleString(
     "ar-EG",
@@ -572,4 +636,4 @@ function escapeHTML(value) {
       }
     );
 
-    }
+        }
