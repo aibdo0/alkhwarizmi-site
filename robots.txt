@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /panel-5e67189e.html
-Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
+
+Sitemap: https://aibdo0.github.io/alkhwarizmi-site/sitemap.xml

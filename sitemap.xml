@@ -1,10 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://YOUR-DOMAIN.com/index.html</loc></url>
-<url><loc>https://YOUR-DOMAIN.com/initiative.html</loc></url>
-<url><loc>https://YOUR-DOMAIN.com/first-owner.html</loc></url>
-<url><loc>https://YOUR-DOMAIN.com/triptyque.html</loc></url>
-<url><loc>https://YOUR-DOMAIN.com/gulf-cars.html</loc></url>
-<url><loc>https://YOUR-DOMAIN.com/acid.html</loc></url>
-<url><loc>https://YOUR-DOMAIN.com/safaga.html</loc></url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/index.html</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/track.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/initiative.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/first-owner.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/triptyque.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/personal-import.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/gulf-cars.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/goods.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/transit.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aibdo0.github.io/alkhwarizmi-site/heavy-equipment.html</loc>
+    <priority>0.8</priority>
+  </url>
 </urlset>
