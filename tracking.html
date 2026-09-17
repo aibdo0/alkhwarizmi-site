@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تتبع شحنتك | شركة الخوارزمي</title>
+<meta name="description" content="تتبع حالة شحنتك مع شركة الخوارزمي للتخليص الجمركي والاستيراد والتصدير.">
+<link rel="stylesheet" href="service-pages.css">
+</head>
+<body>
+<header class="header"><div class="container header-in">
+<a class="brand" href="index.html"><img src="logo.png" alt="شعار شركة الخوارزمي"><div><b>شركة الخوارزمي</b><span>للتخليص الجمركي والاستيراد والتصدير</span></div></a>
+<div class="top-actions"><a class="btn outline" href="index.html">الرئيسية</a><a class="btn dark" href="index.html#contact">تواصل معنا</a></div>
+</div></header>
+
+<section class="page-hero tracking-hero"><div class="container hero-content">
+<span class="kicker">متابعة الشحنة</span>
+<h1>تتبع شحنتك</h1>
+<p>اكتب رقم الشحنة لمعرفة آخر حالة مسجلة ووقت آخر تحديث.</p>
+</div></section>
+
+<main class="section" style="padding-top:0">
+<div class="track-box">
+<form class="track-form" id="trackForm">
+<input id="trackCode" type="text" placeholder="اكتب رقم الشحنة" autocomplete="off" required>
+<button class="btn gold" type="submit">بحث عن الشحنة</button>
+</form>
+<div id="trackResult" class="track-result"></div>
+</div>
+<div class="container" style="padding-top:45px">
+<div class="section-head">
+<span class="eyebrow">مراحل المتابعة</span>
+<h2>من استلام المستندات حتى التسليم</h2>
+<p>تظهر لك الحالة المسجلة حاليًا في ملف الشحنة.</p>
+</div>
+<div class="quick">
+<div class="mini"><b>مراجعة المستندات</b><span>التأكد من جاهزية الملف.</span></div>
+<div class="mini"><b>الإجراءات والشحن</b><span>متابعة مراحل الشحنة والتخليص.</span></div>
+<div class="mini"><b>الإفراج والتسليم</b><span>حتى خروج السيارة وتسليمها.</span></div>
+</div>
+</div>
+</main>
+
+<a class="float-wa" href="https://wa.me/201003299254" target="_blank" rel="noopener">واتساب</a>
+<footer class="footer"><div class="container footer-in">
+<div><b>شركة الخوارزمي</b><p>للتخليص الجمركي والاستيراد والتصدير</p></div>
+<div><p>أمام بوابة ميناء سفاجا</p><p>01003299254 • 01159792500</p></div>
+</div></footer>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbwRXtdjZYyrKrJC8DBiRvL7AoXNYKVeMuTlygWP0tFPGIdguqzLIWaz7GESIG3vZqh7/exec";
+const form=document.getElementById("trackForm");
+const input=document.getElementById("trackCode");
+const result=document.getElementById("trackResult");
+
+function showResult(data){
+  if(!data || !data.ok){
+    result.innerHTML='<div class="error">'+((data&&data.message)||"تعذر الحصول على بيانات الشحنة")+'</div>';
+    return;
+  }
+  const updated=data.updatedAt ? new Date(data.updatedAt).toLocaleString("ar-EG") : "غير متوفر";
+  result.innerHTML=`
+  <div class="result-card">
+    <div class="result-title">بيانات الشحنة: ${data.code||""}</div>
+    <div class="result-row"><b>السيارة</b><span>${data.carInfo||"—"}</span></div>
+    <div class="result-row"><b>الحالة الحالية</b><span class="status">${data.status||"—"}</span></div>
+    <div class="result-row"><b>آخر تحديث</b><span>${updated}</span></div>
+    <div class="result-row"><b>ملاحظات</b><span>${data.note||"لا توجد ملاحظات"}</span></div>
+  </div>`;
+}
+
+form.addEventListener("submit",function(e){
+  e.preventDefault();
+  const code=input.value.trim();
+  if(!code)return;
+  result.innerHTML='<div class="card">جاري البحث عن الشحنة...</div>';
+  const cb="trackCallback_"+Date.now();
+  window[cb]=function(data){showResult(data);delete window[cb];script.remove();};
+  const script=document.createElement("script");
+  script.src=API_URL+"?action=get&code="+encodeURIComponent(code)+"&callback="+cb;
+  script.onerror=function(){result.innerHTML='<div class="error">تعذر الاتصال بخدمة التتبع. حاول مرة أخرى.</div>';delete window[cb];script.remove();};
+  document.body.appendChild(script);
+});
+</script>
+</body>
+</html>
